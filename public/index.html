@@ -1,0 +1,61 @@
+<!doctype html>
+<html>
+<head>
+  <title>Recall</title>
+  <meta charset="utf-8">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.7/angular.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.8/socket.io.min.js"></script>
+</head>
+<body ng-app="recallApp">
+  <div ng-controller="recallCtrl">
+    <form ng-hide="nameChosen" ng-submit="changeName()">
+      <input ng-model="name" placeholder="Enter your name"><button>Save Name</button>
+    </form>
+    <div><a href="" ng-click="nameChosen = false" ng-show="nameChosen">{{name}}</a></div>
+
+    <form ng-submit="sendMessage()">
+      <input class="input-box" ng-model="input"><button>Send</button>
+    </form>
+
+    <ul ng-repeat="message in messages track by $index">
+      <li><span>{{message.name}}</span>: <span>{{message.text}}</span></li>
+    </ul>
+  </div>
+  <script>
+    var recallApp = angular.module('recallApp', [])
+    recallApp.controller('recallCtrl', ['$scope', function($scope) {
+      $scope.input = ''
+      $scope.name = localStorage.getItem('name') || ''
+      $scope.nameChosen = isValidName($scope.name)
+      $scope.messages = localStorage.getItem('messages') ? JSON.parse(localStorage.getItem('messages')) : []
+
+      var inputbox = document.querySelector('.input-box')
+
+      var socket = io()
+      socket.on('message', (message) => {
+        $scope.messages.push(message)
+        $scope.$apply()
+      })
+
+      $scope.sendMessage = function() {
+        var message = {name: $scope.name, text: $scope.input}
+        socket.emit('chat message', message)
+        $scope.messages.push(message)
+        localStorage.setItem('messages', JSON.stringify($scope.messages.slice(-5)))
+        $scope.input = ''
+        inputbox.focus()
+      }
+      $scope.changeName = function() {
+        if (isValidName($scope.name)) {
+          $scope.nameChosen = true
+          localStorage.setItem('name', $scope.name)
+        }
+      }
+
+      function isValidName(name) {
+        return /[^\s]/.test(name)
+      }
+    }])
+  </script>
+</body>
+</html>
