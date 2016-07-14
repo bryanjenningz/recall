@@ -38,21 +38,31 @@
       position: relative;
       width: 500px;
       height: 600px;
+      margin: 0 auto;
     }
     .chat-messages {
       position: absolute;
       width: 100%;
       height: 80%;
       background: #ddd;
+      overflow-y: auto; 
+    }
+    .chat-message-container {
+      width: 100%;
+      position: relative;
     }
     .chat-message {
-      width: 80%;
-      background-color: lightblue;
-      border: 2px solid blue;
-      display: block;
+      font-family: Arial;
+      font-weight: 600;
+      background-color: #28caff;
+      border: none;
+      display: inline-block;
       padding: 20px;
-      position: relative;
-      right: 0;
+      margin: 10px 20px 0;
+      cursor: pointer;
+    }
+    .your-message {
+      background-color: red;
     }
     .chat-form {
       position: absolute;
@@ -74,8 +84,8 @@
       display: inline-block;
       width: 15%;
       height: 40px;
-      border: 1px solid #0000bf;
-      background-color: #14aadb;
+      border: none;
+      background-color: #28caff;
       cursor: pointer;
       font-size: 20px;
     }
@@ -92,14 +102,20 @@
 
     <div class="chat-container">
       <div class="chat-messages">
-        <div class="chat-message" ng-repeat="message in messages track by $index">
-          <span>{{message.name}}</span>: <span>{{message.text}}</span>
+        <div class="chat-message-container" ng-repeat="message in messages track by $index">
+          <div class="chat-message" ng-class="{'your-message': message.userId === userId}">
+            <span>{{message.name}}</span>: <span>{{message.text}}</span>
+          </div>
         </div>
       </div>
       <form class="chat-form" ng-submit="sendMessage()">
         <input class="input-box chat-input" ng-model="input">
         <button class="chat-button">Send</button>
       </form>
+    </div>
+
+    <div ng-show="nameChosen">
+
     </div>
   </div>
   <script>
@@ -109,6 +125,8 @@
       $scope.name = localStorage.getItem('name') || 'Anonymous'
       $scope.nameChosen = isValidName($scope.name)
       $scope.messages = localStorage.getItem('messages') ? JSON.parse(localStorage.getItem('messages')) : []
+      $scope.userId = Math.random().toString()
+      $scope.selectedMessage = -1
 
       var inputbox = document.querySelector('.input-box')
 
@@ -119,7 +137,12 @@
       })
 
       $scope.sendMessage = function() {
-        var message = {name: $scope.name, text: $scope.input}
+        var message = {
+          name: $scope.name,
+          text: $scope.input,
+          id: String(Math.random()) + String(Math.random()),
+          userId: $scope.userId
+        }
         socket.emit('chat message', message)
         $scope.messages.push(message)
         localStorage.setItem('messages', JSON.stringify($scope.messages.slice(-5)))
