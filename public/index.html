@@ -74,6 +74,14 @@
       background-color: #43e42d;
       cursor: pointer;
     }
+    .modal-message-text {
+      margin: 10px;
+      background-color: white;
+      padding: 5px;
+      font-size: 20px;
+      font-weight: 600;
+      font-family: Arial;
+    }
     .chat-form {
       position: absolute;
       width: 100%;
@@ -132,7 +140,7 @@
     </div>
 
     <div class="modal" ng-show="isCorrecting">
-      <div>{{getMessageText()}}</div>
+      <div class="modal-message-text">{{getMessageText()}}</div>
       <button ng-click="toggleCorrecting()" class="chat-button">Done</button>
     </div>
 
