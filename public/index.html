@@ -11,7 +11,7 @@
       position: absolute;
       left: 15%;
       top: 20%;
-      background-color: #ddd;
+      background-color: #bbb;
       width: 70%;
       height: 150px;
     }
@@ -30,6 +30,31 @@
       height: 45px;
       border: 1px solid #0000bf;
       background-color: #14aadb;
+      cursor: pointer;
+      font-size: 20px;
+    }
+    .chat-form {
+      position: absolute;
+      width: 100%;
+      height: 20%;
+      bottom: 0;
+      left: 0;
+    }
+    .chat-input {
+      box-sizing: border-box;
+      display: inline-block;
+      width: 84%;
+      height: 40px;
+      font-size: 20px;
+      padding: 5px 10px;
+    }
+    .chat-button {
+      box-sizing: border-box;
+      display: inline-block;
+      width: 15%;
+      height: 40px;
+      border: none;
+      background-color: #28caff;
       cursor: pointer;
       font-size: 20px;
     }
@@ -71,8 +96,22 @@
       padding: 10px;
       font-weight: 800;
       border: none;
-      background-color: #43e42d;
+      background-color: #4c963d;
       cursor: pointer;
+    }
+    .correction-box {
+      width: 96.1%;
+      height: 35px;
+      left: 9px;
+      position: relative;
+    }
+    .correction-buttons-container {
+      padding-left: 35%;
+      width: 100%;
+    }
+    .chat-correction-button {
+      margin: 2px auto;
+      display: block;
     }
     .modal-message-text {
       margin: 10px;
@@ -82,31 +121,10 @@
       font-weight: 600;
       font-family: Arial;
     }
-    .chat-form {
-      position: absolute;
-      width: 100%;
-      height: 20%;
-      bottom: 0;
-      left: 0;
+    .green-background {
+      background-color: #4c963d;
     }
-    .chat-input {
-      box-sizing: border-box;
-      display: inline-block;
-      width: 84%;
-      height: 40px;
-      font-size: 20px;
-      padding: 5px 10px;
-    }
-    .chat-button {
-      box-sizing: border-box;
-      display: inline-block;
-      width: 15%;
-      height: 40px;
-      border: none;
-      background-color: #28caff;
-      cursor: pointer;
-      font-size: 20px;
-    }
+    
   </style>
 </head>
 <body ng-app="recallApp">
@@ -125,6 +143,9 @@
             <div>
               <span>{{message.name}}</span>: <span>{{message.text}}</span>
             </div>
+            <div ng-show="message.correctionText !== undefined">
+              <span>{{message.correctionText}}</span>
+            </div>
             <hr ng-show="selectedMessageId === message.id">
             <div ng-show="selectedMessageId === message.id">
               <button ng-click="toggleCorrecting()" class="correct-button">Correct</button>
@@ -141,12 +162,13 @@
 
     <div class="modal" ng-show="isCorrecting">
       <div class="modal-message-text">{{getMessageText()}}</div>
-      <button ng-click="toggleCorrecting()" class="chat-button">Done</button>
+      <textarea ng-model="correctionText" class="correction-box">{{correctionText}}</textarea>
+      <div class="correction-buttons-container">
+        <button ng-click="sendCorrection()" class="chat-button green-background">Done</button>
+        <button ng-click="toggleCorrecting()" class="chat-button">Cancel</button>
+      </div>
     </div>
 
-    <div ng-show="nameChosen">
-
-    </div>
   </div>
   <script>
     var recallApp = angular.module('recallApp', [])
@@ -158,6 +180,7 @@
       $scope.userId = Math.random().toString()
       $scope.selectedMessageId = -1
       $scope.isCorrecting = false
+      $scope.correctionText = ''
 
       var inputbox = document.querySelector('.input-box')
 
@@ -167,8 +190,8 @@
         $scope.$apply()
       })
 
-      $scope.sendMessage = function() {
-        var message = {
+      $scope.sendMessage = function(message) {
+        var message = message || {
           name: $scope.name,
           text: $scope.input,
           id: String(Math.random()) + String(Math.random()),
@@ -191,12 +214,28 @@
       }
       $scope.toggleCorrecting = function() {
         $scope.isCorrecting = !$scope.isCorrecting
+        if ($scope.isCorrecting) {
+          $scope.correctionText = $scope.getMessageText()
+        } else {
+          $scope.selectedMessageId = -1
+        }
       }
       $scope.getMessageText = function() {
         var message = $scope.messages.filter(m => m.id === $scope.selectedMessageId)[0]
         if (message && message.text) {
           return message.text
         }
+      }
+      $scope.sendCorrection = function() {
+        var correctionMessage = {
+          name: $scope.name,
+          text: $scope.getMessageText(),
+          id: String(Math.random()) + String(Math.random()),
+          userId: $scope.userId,
+          correctionText: $scope.correctionText
+        }
+        $scope.sendMessage(correctionMessage)
+        $scope.toggleCorrecting()
       }
 
       function isValidName(name) {
