@@ -61,8 +61,18 @@
       margin: 10px 20px 0;
       cursor: pointer;
     }
+    .chat-message hr {
+      border: 1px solid black;
+    }
     .your-message {
       background-color: red;
+    }
+    .correct-button {
+      padding: 10px;
+      font-weight: 800;
+      border: none;
+      background-color: #43e42d;
+      cursor: pointer;
     }
     .chat-form {
       position: absolute;
@@ -102,16 +112,28 @@
 
     <div class="chat-container">
       <div class="chat-messages">
-        <div class="chat-message-container" ng-repeat="message in messages track by $index">
+        <div ng-click="selectMessage(message.id)" class="chat-message-container" ng-repeat="message in messages track by $index">
           <div class="chat-message" ng-class="{'your-message': message.userId === userId}">
-            <span>{{message.name}}</span>: <span>{{message.text}}</span>
+            <div>
+              <span>{{message.name}}</span>: <span>{{message.text}}</span>
+            </div>
+            <hr ng-show="selectedMessageId === message.id">
+            <div ng-show="selectedMessageId === message.id">
+              <button ng-click="toggleCorrecting()" class="correct-button">Correct</button>
+            </div>
           </div>
+          
         </div>
       </div>
       <form class="chat-form" ng-submit="sendMessage()">
         <input class="input-box chat-input" ng-model="input">
         <button class="chat-button">Send</button>
       </form>
+    </div>
+
+    <div class="modal" ng-show="isCorrecting">
+      <div>{{getMessageText()}}</div>
+      <button ng-click="toggleCorrecting()" class="chat-button">Done</button>
     </div>
 
     <div ng-show="nameChosen">
@@ -126,7 +148,8 @@
       $scope.nameChosen = isValidName($scope.name)
       $scope.messages = localStorage.getItem('messages') ? JSON.parse(localStorage.getItem('messages')) : []
       $scope.userId = Math.random().toString()
-      $scope.selectedMessage = -1
+      $scope.selectedMessageId = -1
+      $scope.isCorrecting = false
 
       var inputbox = document.querySelector('.input-box')
 
@@ -153,6 +176,18 @@
         if (isValidName($scope.name)) {
           $scope.nameChosen = true
           localStorage.setItem('name', $scope.name)
+        }
+      }
+      $scope.selectMessage = function(messageId) {
+        $scope.selectedMessageId = messageId
+      }
+      $scope.toggleCorrecting = function() {
+        $scope.isCorrecting = !$scope.isCorrecting
+      }
+      $scope.getMessageText = function() {
+        var message = $scope.messages.filter(m => m.id === $scope.selectedMessageId)[0]
+        if (message && message.text) {
+          return message.text
         }
       }
 
