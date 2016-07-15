@@ -13,6 +13,16 @@ var messageSchema = new mongoose.Schema({
 })
 
 var MessageModel = mongoose.model('message', messageSchema)
+var saveMessage = (message) => {
+  var messageModel = new MessageModel(message)
+  messageModel.save((error, data) => {
+    if (error) {
+      console.log('Error: ' + error)
+    } else {
+      console.log('Saved message: ' + data)
+    }
+  })
+}
 
 var mongoUri = process.env.MONGODB_URI || 'mongodb://localhost/recall'
 mongoose.connect(mongoUri)
@@ -25,14 +35,7 @@ app.use(express.static(__dirname + '/public'))
 io.on('connection', (socket) => {
   socket.on('chat message', (message) => {
     socket.broadcast.emit('message', message)
-    var messageModel = new MessageModel(message)
-    messageModel.save((error, data) => {
-      if (error) {
-        console.log('Error: ' + error)
-      } else {
-        console.log('Saved message: ' + data)
-      }
-    })
+    saveMessage(message)
   })
 })
   
